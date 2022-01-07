@@ -11,7 +11,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.geektech.a3l2retrofit.App;
 import com.geektech.a3l2retrofit.R;
@@ -57,12 +56,15 @@ public class FormFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-
         if (getArguments() != null) {
             post = (Post) requireArguments().getSerializable("id");
             isChanged = true;
             setPosts();
         }
+        sendBtn();
+    }
+
+    private void sendBtn() {
         binding.sendBtn.setOnClickListener(v -> {
             if (!isChanged) {
                 buttonClick();
@@ -75,8 +77,10 @@ public class FormFragment extends Fragment {
     private void updatePost() {
         String title = binding.titleEdt.getText().toString();
         String content = binding.contentEdt.getText().toString();
-        Post post2 = new Post(title , content , USER_ID , GROUP_ID);
-        App.api.updatePost(post.getId(), post2).enqueue(new Callback<Post>() {
+        post.setTitle(title);
+        post.setContent(content);
+//        Post post2 = new Post(title , content , USER_ID , GROUP_ID);
+        App.api.updatePost(post.getId(), post).enqueue(new Callback<Post>() {
             @Override
             public void onResponse(Call<Post> call, Response<Post> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -84,6 +88,7 @@ public class FormFragment extends Fragment {
                     controller.navigateUp();
                 }
             }
+
             @Override
             public void onFailure(Call<Post> call, Throwable t) {
 
@@ -98,19 +103,24 @@ public class FormFragment extends Fragment {
     }
 
     private void buttonClick() {
-
-            App.api.createPost(post).enqueue(new Callback<Post>() {
-                @Override
-                public void onResponse(Call<Post> call, Response<Post> response) {
-                    if (response.isSuccessful()) {
-                        controller.popBackStack();
-                    }
+        post = new Post(
+                binding.titleEdt.getText().toString(),
+                binding.contentEdt.getText().toString(),
+                USER_ID,
+                GROUP_ID
+        );
+        App.api.createPost(post).enqueue(new Callback<Post>() {
+            @Override
+            public void onResponse(Call<Post> call, Response<Post> response) {
+                if (response.isSuccessful()) {
+                    controller.popBackStack();
                 }
+            }
 
-                @Override
-                public void onFailure(Call<Post> call, Throwable t) {
+            @Override
+            public void onFailure(Call<Post> call, Throwable t) {
 
-                }
-            });
+            }
+        });
     }
 }

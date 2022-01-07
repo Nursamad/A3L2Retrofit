@@ -22,7 +22,6 @@ import com.geektech.a3l2retrofit.databinding.FragmentPostsBinding;
 import com.geektech.a3l2retrofit.models.Post;
 import com.geektech.a3l2retrofit.ui.interfaces.OnItemClickListener;
 
-import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -35,7 +34,6 @@ public class PostFragment extends Fragment {
     private PostAdapter adapter;
     private NavHostFragment navHostFragment;
     private NavController controller;
-
 
 
     public PostFragment() {
@@ -60,6 +58,13 @@ public class PostFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initView();
+
+        onItemClick();
+        getPosts();
+        fabClick();
+    }
+
+    private void onItemClick() {
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onClick(int position) {
@@ -73,26 +78,26 @@ public class PostFragment extends Fragment {
             @Override
             public void onLongClick(Post post, int position) {
 
-                AlertDialog.Builder alert = new AlertDialog.Builder(requireContext());
-                alert.setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                        App.api.deletePost(adapter.getItem(position).getId()).enqueue(new Callback<Post>() {
+                new AlertDialog.Builder(requireContext())
+                        .setPositiveButton("Да", new DialogInterface.OnClickListener() {
                             @Override
-                            public void onResponse(Call<Post> call, Response<Post> response) {
-                                if (response.isSuccessful() && response.body() != null) {
-                                    adapter.removeItem(position);
-                                }
-                            }
+                            public void onClick(DialogInterface dialogInterface, int i) {
 
-                            @Override
-                            public void onFailure(Call<Post> call, Throwable t) {
-                                Log.e("TAG", "onFailure: " + t.getLocalizedMessage());
+                                App.api.deletePost(adapter.getItem(position).getId()).enqueue(new Callback<Post>() {
+                                    @Override
+                                    public void onResponse(Call<Post> call, Response<Post> response) {
+                                        if (response.isSuccessful() && response.body() != null) {
+                                            adapter.removeItem(position);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<Post> call, Throwable t) {
+                                        Log.e("TAG", "onFailure: " + t.getLocalizedMessage());
+                                    }
+                                });
                             }
-                        });
-                    }
-                }).setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                        }).setNegativeButton("Нет", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dialogInterface.dismiss();
@@ -100,6 +105,9 @@ public class PostFragment extends Fragment {
                 }).show();
             }
         });
+    }
+
+    private void getPosts() {
         App.api.getPosts().enqueue(new Callback<List<Post>>() {
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
@@ -112,10 +120,12 @@ public class PostFragment extends Fragment {
 
             }
         });
+    }
+
+    private void fabClick() {
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.navHost);
                 navController.navigate(R.id.formFragment);
             }
